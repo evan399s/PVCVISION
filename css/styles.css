@@ -90,6 +90,15 @@ html, body {
 }
 #toolbar button:hover { border-color: var(--accent); }
 #toolbar button.on { background: #283341; border-color: var(--accent); }
+#toolbar .dnlabel { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+#toolbar select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
 #toolbar .hint { margin-left: auto; font-size: 12px; color: var(--muted); }
 #explodeRow { align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 #explodeRow input { width: 120px; }
@@ -123,6 +132,38 @@ html, body {
 #info ul, #info ol { margin: 6px 0 0 18px; font-size: 14px; line-height: 1.6; }
 #info .bom li { margin-bottom: 4px; }
 .muted { color: var(--muted); }
+
+/* Buscador de reducción */
+#info .finder { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+#info .finder select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+#info .result {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #283341;
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+/* Botón del taller */
+.wbtn {
+  margin-top: 16px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.wbtn:hover { border-color: #ff6b6b; color: #ff9b9b; }
 
 @media (max-width: 1000px) {
   #app { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; }

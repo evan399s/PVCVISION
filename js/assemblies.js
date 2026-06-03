@@ -114,6 +114,105 @@ export const ASSEMBLIES = {
       { id: 'tubo', pos: [0, -6, 0], opts: { length: 8 } },
     ],
   },
+
+  inodoro_bajante: {
+    nombre: 'Inodoro a bajante (110 mm)',
+    descripcion:
+      'El inodoro evacua por una salida horizontal de 110 mm. Se conecta a la ' +
+      'bajante con un manguito de inodoro y un codo de 90°. ¡Nunca se reduce el WC!',
+    bom: [
+      ['inodoro', 1, 'Taza del WC'],
+      ['manguito', 1, 'Manguito de inodoro (110 mm)'],
+      ['codo90', 1, 'Codo 90° de 110 mm'],
+      ['tubo', 1, 'Tramo a la bajante (110 mm)'],
+    ],
+    pasos: [
+      'La salida del inodoro es de 110 mm: no se reduce nunca.',
+      'Encaja el manguito de inodoro en la salida de la taza.',
+      'Conecta un codo de 90° de 110 mm para girar hacia la bajante.',
+      'Empalma con la bajante general con un tramo de tubo de 110 mm.',
+    ],
+    piezas: [
+      { id: 'inodoro', pos: [-6, 0, -8], opts: { R: 5.5 } },
+      { id: 'manguito', pos: [-6, 2, 2], rot: [Math.PI / 2, 0, 0], opts: { R: 5.5, length: 5 } },
+      { id: 'codo90', pos: [-3, 2, 7], rot: [Math.PI / 2, 0, 0], opts: { R: 5.5, bendR: 5 } },
+      { id: 'tubo', pos: [-6, -7, 7], opts: { R: 5.5, length: 10 } },
+    ],
+  },
+
+  ducha_sumidero: {
+    nombre: 'Desagüe de ducha (50 mm)',
+    descripcion:
+      'El plato de ducha desagua por un sumidero con sifón integrado y salida ' +
+      'horizontal de 50 mm hacia la bajante.',
+    bom: [
+      ['sumidero', 1, 'Sumidero con sifón'],
+      ['tubo', 1, 'Tubo de salida (50 mm)'],
+      ['codo90', 1, 'Codo a la bajante'],
+    ],
+    pasos: [
+      'El sumidero se embute en el plato de ducha.',
+      'Su sifón integrado bloquea los olores.',
+      'Sal en horizontal con un tubo de 50 mm (con pendiente).',
+      'Gira a la bajante con un codo de 90°.',
+    ],
+    piezas: [
+      { id: 'sumidero', pos: [-6, 4, 0], opts: { R: 2.5 } },
+      { id: 'tubo', pos: [2, 2, 0], rot: [0, 0, Math.PI / 2], opts: { R: 2.5, length: 8 } },
+      { id: 'codo90', pos: [7, 4, 0], opts: { R: 2.5 } },
+    ],
+  },
+
+  bote_sifonico: {
+    nombre: 'Bote sifónico (varios aparatos)',
+    descripcion:
+      'Un único bote sifónico recoge lavabo, ducha y bidé, y evacua todo con un ' +
+      'solo cierre hidráulico hacia la bajante. Muy común en baños.',
+    bom: [
+      ['boteSifonico', 1, 'Bote sifónico'],
+      ['tubo', 3, 'Entradas de los aparatos (40 mm)'],
+      ['tubo', 1, 'Salida a la bajante (50 mm)'],
+      ['codo90', 1, 'Codo a la bajante'],
+    ],
+    pasos: [
+      'El bote sifónico se sitúa bajo el suelo del baño.',
+      'Cada aparato (lavabo, ducha, bidé) entra por una boca lateral.',
+      'El cierre hidráulico del bote bloquea olores para todos.',
+      'Una sola salida inferior conduce a la bajante.',
+    ],
+    piezas: [
+      { id: 'boteSifonico', pos: [0, 0, 0], opts: { R: 2 } },
+      { id: 'tubo', pos: [9, 1.5, 0], rot: [0, 0, Math.PI / 2], opts: { R: 2, length: 8 } },
+      { id: 'tubo', pos: [-4.5, 1.5, 7.8], rot: [Math.PI / 2, 0, 0], opts: { R: 2, length: 8 } },
+      { id: 'tubo', pos: [-4.5, 1.5, -7.8], rot: [Math.PI / 2, 0, 0], opts: { R: 2, length: 8 } },
+      { id: 'tubo', pos: [0, -10, 0], opts: { R: 2.5, length: 8 } },
+    ],
+  },
+
+  bajante: {
+    nombre: 'Bajante con acometidas',
+    descripcion:
+      'Tubería vertical principal (bajante) que recibe los desagües de cada planta ' +
+      'mediante Tes y los conduce a la red de saneamiento.',
+    bom: [
+      ['tubo', 2, 'Tramos verticales de bajante (110 mm)'],
+      ['te', 2, 'Tes de acometida de cada planta'],
+      ['codo45', 1, 'Codo 45° en la base'],
+    ],
+    pasos: [
+      'La bajante es vertical y de gran diámetro (110 mm).',
+      'En cada planta una Te recoge el desagüe del baño.',
+      'Los ramales entran por el lateral de la Te.',
+      'En la base, un codo de 45° suaviza el giro a la red horizontal.',
+    ],
+    piezas: [
+      { id: 'tubo', pos: [0, 12, 0], opts: { R: 5.5, length: 12 } },
+      { id: 'te', pos: [0, 4, 0], rot: [0, 0, Math.PI], opts: { R: 5.5, run: 16, branch: 8 } },
+      { id: 'tubo', pos: [0, -6, 0], opts: { R: 5.5, length: 12 } },
+      { id: 'te', pos: [0, -14, 0], rot: [0, 0, Math.PI], opts: { R: 5.5, run: 16, branch: 8 } },
+      { id: 'codo45', pos: [0, -22, 0], opts: { R: 5.5, bendR: 6 } },
+    ],
+  },
 };
 
 // Construye un THREE.Group con todas las piezas de un montaje colocadas.

@@ -47,7 +47,7 @@ const RUBBER = new THREE.MeshStandardMaterial({
 
 // Tubo hueco recto a lo largo del eje Y, centrado en el origen.
 // Devuelve un Group con pared exterior, pared interior y dos anillos de borde.
-function hollowPipe(length, outerR, wall = 0.25, mat = PVC_WHITE) {
+function hollowPipe(length, outerR, wall = outerR * 0.12, mat = PVC_WHITE) {
   const g = new THREE.Group();
   const innerR = Math.max(0.01, outerR - wall);
   const RAD = 48;
@@ -77,7 +77,7 @@ function hollowPipe(length, outerR, wall = 0.25, mat = PVC_WHITE) {
 
 // Campana / copa de unión (socket hembra): anillo ensanchado en un extremo
 // donde encaja el tubo macho. Es el detalle que indica "por aquí se une".
-function socketBell(outerR, wall = 0.25, depth = 1.4, mat = PVC_WHITE) {
+function socketBell(outerR, wall = outerR * 0.12, depth = 1.4, mat = PVC_WHITE) {
   const bellR = outerR + wall * 1.6;
   return hollowPipe(depth, bellR, wall, mat);
 }
@@ -200,7 +200,7 @@ export function cruz({ R = 2, run = 10, branch = 10 } = {}) {
 }
 
 // REDUCCIÓN: cono truncado de un diámetro grande a uno pequeño.
-export function reduccion({ R1 = 2.6, R2 = 1.6, length = 4, wall = 0.25 } = {}) {
+export function reduccion({ R1 = 2.6, R2 = 1.6, length = 4, wall = R1 * 0.1 } = {}) {
   const g = new THREE.Group();
   const RAD = 48;
   const outer = new THREE.Mesh(
@@ -315,6 +315,107 @@ export function valvula({ R = 2 } = {}) {
   return g;
 }
 
+// BOTE SIFÓNICO: caja cilíndrica que recoge varios desagües (lavabo, ducha,
+// bidé) y los une en una sola salida con un único cierre hidráulico.
+export function boteSifonico({ R = 2 } = {}) {
+  const g = new THREE.Group();
+  const boxR = R * 2.6;
+  const boxH = 6;
+
+  // Cuerpo del bote.
+  const body = hollowPipe(boxH, boxR);
+  g.add(body);
+  // Tapa registrable.
+  const lid = new THREE.Mesh(new THREE.CylinderGeometry(boxR + 0.3, boxR + 0.3, 0.8, 48), PVC_GREY);
+  lid.position.y = boxH / 2;
+  g.add(lid);
+  const knob = new THREE.Mesh(new THREE.CylinderGeometry(boxR * 0.4, boxR * 0.4, 0.6, 32), PVC_GREY);
+  knob.position.y = boxH / 2 + 0.6;
+  g.add(knob);
+
+  // Entradas laterales (3) y salida inferior.
+  const sockets = [];
+  const angles = [0, Math.PI * 0.66, Math.PI * 1.33];
+  angles.forEach((a, i) => {
+    const inl = hollowPipe(2.4, R);
+    inl.rotation.z = Math.PI / 2;
+    inl.rotation.y = a;
+    const x = Math.cos(a) * (boxR + 1);
+    const z = Math.sin(a) * (boxR + 1);
+    inl.position.set(x, 1.5, z);
+    g.add(inl);
+    sockets.push({ name: 'entrada' + (i + 1), pos: [Math.cos(a) * (boxR + 2.2), 1.5, Math.sin(a) * (boxR + 2.2)], dir: [Math.cos(a), 0, Math.sin(a)], R });
+  });
+  const out = hollowPipe(3, R);
+  out.position.y = -boxH / 2 - 1;
+  g.add(out);
+  sockets.push({ name: 'salida', pos: [0, -boxH / 2 - 2.5, 0], dir: [0, -1, 0], R });
+
+  g.userData = { sockets };
+  return g;
+}
+
+// SUMIDERO DE DUCHA: rejilla cuadrada + cuerpo con sifón integrado y salida.
+export function sumidero({ R = 2 } = {}) {
+  const g = new THREE.Group();
+  const side = R * 3.2;
+
+  // Marco/rejilla superior.
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(side, 0.5, side), PVC_GREY);
+  frame.position.y = 3;
+  g.add(frame);
+  for (let i = -2; i <= 2; i++) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, side * 0.85), PVC_GREY);
+    bar.position.set(i * (side / 6), 3.35, 0);
+    g.add(bar);
+  }
+  // Cuerpo.
+  const body = hollowPipe(5, R * 1.4);
+  body.position.y = 0;
+  g.add(body);
+  // Salida lateral (horizontal hacia la bajante).
+  const out = hollowPipe(4, R);
+  out.rotation.z = Math.PI / 2;
+  out.position.set(R * 1.4 + 2, -2, 0);
+  g.add(out);
+
+  g.userData = {
+    sockets: [{ name: 'salida', pos: [R * 1.4 + 4, -2, 0], dir: [1, 0, 0], R }],
+  };
+  return g;
+}
+
+// INODORO (estilizado): silueta simple con la salida horizontal (horn) que
+// se conecta a la bajante mediante un manguito de inodoro.
+export function inodoro({ R = 5.5 } = {}) {
+  const g = new THREE.Group();
+
+  // Taza (lathe sencillo).
+  const points = [];
+  for (let i = 0; i <= 10; i++) {
+    const t = i / 10;
+    const y = t * 10;
+    const rad = 6 + Math.sin(t * Math.PI) * 2.5;
+    points.push(new THREE.Vector2(rad, y));
+  }
+  const bowl = new THREE.Mesh(new THREE.LatheGeometry(points, 40), PVC_WHITE);
+  g.add(bowl);
+  // Tanque (cisterna) trasero.
+  const tank = new THREE.Mesh(new THREE.BoxGeometry(11, 8, 4), PVC_WHITE);
+  tank.position.set(0, 12, -7);
+  g.add(tank);
+  // Salida horizontal (manguito de conexión a bajante).
+  const horn = hollowPipe(5, R);
+  horn.rotation.x = Math.PI / 2;
+  horn.position.set(0, 2, 7);
+  g.add(horn);
+
+  g.userData = {
+    sockets: [{ name: 'salida', pos: [0, 2, 10], dir: [0, 0, 1], R }],
+  };
+  return g;
+}
+
 // ---------------------------------------------------------------------------
 // Registro del catálogo: id -> { nombre, generador, descripción, ... }
 // ---------------------------------------------------------------------------
@@ -325,6 +426,7 @@ export const CATALOG = {
     uso: 'Conduce el agua en línea recta. Se corta a la medida necesaria.',
     union: 'Extremo macho que entra en la campana (hembra) de la siguiente pieza, con cola de PVC o junta de goma.',
     bocas: 2,
+    dn: 40,
   },
   codo90: {
     nombre: 'Codo 90°',
@@ -388,5 +490,29 @@ export const CATALOG = {
     uso: 'Rejilla y conexión que sale del propio lavabo o fregadero.',
     union: 'Rosca al aparato por arriba; abajo se conecta al sifón.',
     bocas: 1,
+  },
+  boteSifonico: {
+    nombre: 'Bote sifónico',
+    factory: boteSifonico,
+    uso: 'Recoge varios desagües (lavabo, ducha, bidé) y los une con un solo cierre hidráulico antiolores.',
+    union: 'Varias entradas laterales hembra + una salida inferior hacia la bajante.',
+    bocas: 4,
+    dn: 40,
+  },
+  sumidero: {
+    nombre: 'Sumidero de ducha',
+    factory: sumidero,
+    uso: 'Recoge el agua del plato de ducha con sifón integrado y rejilla registrable.',
+    union: 'Salida lateral hacia la bajante; arriba conecta con el plato.',
+    bocas: 1,
+    dn: 50,
+  },
+  inodoro: {
+    nombre: 'Inodoro (WC)',
+    factory: inodoro,
+    uso: 'La taza del WC. Su salida se conecta a la bajante de 110 mm.',
+    union: 'Salida horizontal que entra en un manguito de inodoro (DN110).',
+    bocas: 1,
+    dn: 110,
   },
 };
