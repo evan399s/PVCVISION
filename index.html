@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PVCVision — Visor 3D de piezas PVC</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Importmap: carga Three.js desde CDN (no requiere build) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- Catálogo -->
+    <aside id="sidebar">
+      <div class="brand">PVC<span>Vision</span></div>
+      <div class="subtitle">Visor 3D de piezas y montajes de PVC</div>
+
+      <div class="group-title">Montajes</div>
+      <div id="assemblies"></div>
+
+      <div class="group-title">Piezas (fittings)</div>
+      <div id="parts"></div>
+    </aside>
+
+    <!-- Visor -->
+    <main id="center">
+      <div id="toolbar">
+        <button id="spinBtn">↻ Girar</button>
+        <button id="resetBtn">⤢ Encuadrar</button>
+        <div id="explodeRow" style="display:none">
+          <label>Despiece</label>
+          <input id="explode" type="range" min="0" max="1" step="0.01" value="0" />
+        </div>
+        <span class="hint">Arrastra para rotar · rueda para zoom · clic derecho para mover</span>
+      </div>
+      <div id="viewport"></div>
+    </main>
+
+    <!-- Información -->
+    <section id="info"></section>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
