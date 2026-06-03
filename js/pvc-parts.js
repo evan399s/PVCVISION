@@ -113,54 +113,49 @@ export function tubo({ length = 12, R = 2 } = {}) {
 }
 
 // CODO a un ángulo dado (90 o 45 son los habituales).
-export function codo({ angle = 90, R = 2, bendR = 3.2 } = {}) {
+// Geometría exacta: arco de torus + dos tramos rectos tangentes. Las bocas
+// quedan justo en el extremo abierto de cada tramo, con su dirección saliente
+// correcta (clave para que el ensamblaje encaje sin solapes).
+export function codo({ angle = 90, R = 2, bendR = R * 1.6 } = {}) {
   const g = new THREE.Group();
   const arc = THREE.MathUtils.degToRad(angle);
+  const L = R * 1.3; // longitud de cada tramo recto
 
-  // Cuerpo curvo: un torus parcial. El tubo del torus = radio del PVC.
+  // Arco del codo (centro en el origen, plano XY, de ángulo 0 a `arc`).
   const curve = new THREE.Mesh(
-    new THREE.TorusGeometry(bendR, R, 32, 48, arc),
-    PVC_WHITE
-  );
-  // El torus nace en el plano XY abriendo hacia +X; lo dejamos así y añadimos
-  // dos tramos rectos cortos con campana en cada boca.
+    new THREE.TorusGeometry(bendR, R, 32, 64, arc), PVC_WHITE);
   g.add(curve);
 
-  // Boca 1: en el inicio del arco (ángulo 0) -> punto (bendR, 0).
-  const stub1 = hollowPipe(2, R);
-  place(stub1, { pos: [bendR, -1, 0] });
-  g.add(stub1);
-  const bell1 = socketBell(R);
-  place(bell1, { pos: [bendR, -1.6, 0] });
-  g.add(bell1);
+  // Boca A: en el inicio del arco S0 = (bendR, 0), tramo recto hacia -Y.
+  const stubA = hollowPipe(L, R);
+  stubA.position.set(bendR, -L / 2, 0);
+  g.add(stubA);
+  const bellA = socketBell(R);
+  bellA.position.set(bendR, -L + 0.6, 0);
+  g.add(bellA);
 
-  // Boca 2: en el final del arco.
+  // Boca B: en el final del arco S1, tramo recto en la dirección tangente.
   const ex = Math.cos(arc) * bendR;
   const ey = Math.sin(arc) * bendR;
-  const stub2 = hollowPipe(2, R);
-  // dirección tangente al arco en su final
-  place(stub2, {
-    pos: [ex - Math.sin(arc) * 1, ey + Math.cos(arc) * 1, 0],
-    rot: [0, 0, arc],
-  });
-  g.add(stub2);
-  const bell2 = socketBell(R);
-  place(bell2, {
-    pos: [ex - Math.sin(arc) * 1.6, ey + Math.cos(arc) * 1.6, 0],
-    rot: [0, 0, arc],
-  });
-  g.add(bell2);
+  const dirB = new THREE.Vector3(-Math.sin(arc), Math.cos(arc), 0).normalize();
+  const stubB = hollowPipe(L, R);
+  stubB.position.set(ex + dirB.x * L / 2, ey + dirB.y * L / 2, 0);
+  stubB.rotation.z = arc;
+  g.add(stubB);
+  const bellB = socketBell(R);
+  bellB.position.set(ex + dirB.x * (L - 0.6), ey + dirB.y * (L - 0.6), 0);
+  bellB.rotation.z = arc;
+  g.add(bellB);
 
   g.userData = {
     sockets: [
-      { name: 'A', pos: [bendR, -2, 0], dir: [0, -1, 0], R },
-      { name: 'B', pos: [ex - Math.sin(arc) * 2, ey + Math.cos(arc) * 2, 0], dir: [-Math.sin(arc), Math.cos(arc), 0], R },
+      { name: 'A', pos: [bendR, -L, 0], dir: [0, -1, 0], R },
+      { name: 'B', pos: [ex + dirB.x * L, ey + dirB.y * L, 0], dir: [dirB.x, dirB.y, 0], R },
     ],
   };
-  // Centrar aproximadamente
-  g.position.set(-bendR / 1.5, -bendR / 3, 0);
   return g;
 }
+
 
 // TE (T): ramal a 90° del eje principal.
 export function te({ R = 2, run = 10, branch = 6 } = {}) {
@@ -257,43 +252,47 @@ export function tapon({ R = 2, depth = 2 } = {}) {
   return g;
 }
 
-// SIFÓN (sifón en U / bote sifónico simplificado tipo P-trap).
-// Retiene agua para impedir el paso de olores. Forma de U + salida.
+// SIFÓN en U (tipo P-trap). Retiene agua para bloquear olores.
+// La curva en U se dibuja en la mitad inferior; las dos bocas (entrada y
+// salida) apuntan hacia arriba. La salida se gira luego a la pared con un codo.
 export function sifon({ R = 2 } = {}) {
   const g = new THREE.Group();
-  const bendR = 3.0;
+  const bendR = R * 1.6;
+  const Lin = R * 2.4;   // tramo de entrada
+  const Lout = R * 1.4;  // tramo corto de salida
 
-  // Tramo vertical de entrada (viene del desagüe).
-  const inlet = hollowPipe(6, R);
-  inlet.position.set(-bendR, 3, 0);
-  g.add(inlet);
-
-  // Curva en U (medio torus, 180°).
-  const u = new THREE.Mesh(new THREE.TorusGeometry(bendR, R, 32, 64, Math.PI), PVC_WHITE);
-  u.rotation.z = Math.PI; // abre hacia abajo formando la U
+  // Curva en U: medio torus girado para que abra hacia arriba (∪).
+  const u = new THREE.Mesh(new THREE.TorusGeometry(bendR, R, 32, 96, Math.PI), PVC_WHITE);
+  u.rotation.z = Math.PI;
   g.add(u);
 
-  // Tramo de salida hacia la pared, con ligera subida.
-  const outlet = hollowPipe(7, R);
-  outlet.rotation.z = Math.PI / 2;
-  outlet.position.set(bendR + 3, 0, 0);
-  g.add(outlet);
+  // Boca de entrada: extremo izquierdo (-bendR, 0) hacia arriba.
+  const inlet = hollowPipe(Lin, R);
+  inlet.position.set(-bendR, Lin / 2, 0);
+  g.add(inlet);
+  const bellIn = socketBell(R);
+  bellIn.position.set(-bendR, Lin - 0.6, 0);
+  g.add(bellIn);
 
-  // Tuerca/registro inferior (tapón de limpieza) y juntas.
-  const nut = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.5, R + 0.5, 1.2, 12), PVC_GREY);
-  nut.position.set(0, -bendR, 0);
+  // Boca de salida: extremo derecho (bendR, 0) hacia arriba (tramo corto).
+  const outlet = hollowPipe(Lout, R);
+  outlet.position.set(bendR, Lout / 2, 0);
+  g.add(outlet);
+  const bellOut = socketBell(R);
+  bellOut.position.set(bendR, Lout - 0.6, 0);
+  g.add(bellOut);
+
+  // Tuerca/registro de limpieza en el fondo de la U.
+  const nut = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.5, R + 0.5, 1.0, 16), PVC_GREY);
+  nut.position.set(0, -bendR - 0.4, 0);
   g.add(nut);
-  const joint = new THREE.Mesh(new THREE.TorusGeometry(R + 0.1, 0.22, 12, 40), RUBBER);
-  joint.rotation.z = Math.PI / 2; joint.position.set(bendR + 6.5, 0, 0);
-  g.add(joint);
 
   g.userData = {
     sockets: [
-      { name: 'entrada', pos: [-bendR, 6, 0], dir: [0, 1, 0], R },
-      { name: 'salida', pos: [bendR + 6.5, 0, 0], dir: [1, 0, 0], R },
+      { name: 'entrada', pos: [-bendR, Lin, 0], dir: [0, 1, 0], R },
+      { name: 'salida', pos: [bendR, Lout, 0], dir: [0, 1, 0], R },
     ],
   };
-  g.position.set(-1.5, 1, 0);
   return g;
 }
 
