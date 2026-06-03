@@ -1,62 +1,18 @@
 @echo off
 REM ============================================================
 REM  PVCVision - Lanzador para Windows
-REM  Arranca un servidor web local y abre el visor en el navegador.
-REM  (La app usa modulos ES: NO funciona abriendo index.html directo.)
+REM  Arranca un mini servidor web (PowerShell, sin instalar nada)
+REM  y abre el visor en el navegador automaticamente.
+REM  La app usa modulos ES: NO funciona abriendo index.html directo.
 REM ============================================================
-setlocal
 cd /d "%~dp0"
 
-set PORT=8000
-set URL=http://localhost:%PORT%
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0server.ps1" -Port 8000
 
-echo.
-echo  ===============================================
-echo    PVCVision - Visor 3D de piezas PVC
-echo  ===============================================
-echo.
-
-REM --- 1) Intentar con Python (python) ---
-where python >nul 2>nul
-if %errorlevel%==0 (
-    echo  Servidor: Python  ^|  %URL%
-    echo  Cierra esta ventana para detener el servidor.
+REM Si PowerShell fallara al lanzarse, dejamos la ventana abierta.
+if %errorlevel% neq 0 (
     echo.
-    start "" "%URL%"
-    python -m http.server %PORT%
-    goto :fin
-)
-
-REM --- 2) Intentar con el lanzador de Python (py) ---
-where py >nul 2>nul
-if %errorlevel%==0 (
-    echo  Servidor: Python ^(py^)  ^|  %URL%
-    echo  Cierra esta ventana para detener el servidor.
+    echo  [ERROR] No se pudo iniciar el servidor con PowerShell.
     echo.
-    start "" "%URL%"
-    py -m http.server %PORT%
-    goto :fin
+    pause
 )
-
-REM --- 3) Intentar con Node (npx serve) ---
-where npx >nul 2>nul
-if %errorlevel%==0 (
-    echo  Servidor: Node ^(npx serve^)  ^|  %URL%
-    echo  Cierra esta ventana para detener el servidor.
-    echo.
-    start "" "%URL%"
-    npx --yes serve -l %PORT% .
-    goto :fin
-)
-
-REM --- Nada disponible ---
-echo  [ERROR] No se encontro Python ni Node en el sistema.
-echo.
-echo  Instala una de estas opciones y vuelve a ejecutar:
-echo    - Python:  https://www.python.org/downloads/
-echo    - Node.js: https://nodejs.org/
-echo.
-pause
-
-:fin
-endlocal

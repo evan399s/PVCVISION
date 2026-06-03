@@ -11,11 +11,12 @@ desde CDN — **no hace falta instalar nada ni compilar**.
 
 Como usa módulos ES, debe servirse por HTTP (no abriendo el archivo directamente).
 
-**Windows (lo más fácil):** haz doble clic en **`abrir-pvcvision.bat`**. Arranca
-el servidor (usa Python o Node automáticamente) y abre el navegador solo. Para
+**Windows (lo más fácil):** haz doble clic en **`abrir-pvcvision.bat`**. Usa un
+mini servidor en **PowerShell** (ya incluido en Windows, **no necesita instalar
+Python ni Node**), abre el navegador solo en `http://127.0.0.1:8000` y, para
 parar, cierra la ventana negra.
 
-**Manualmente**, desde la carpeta del proyecto:
+**Manualmente** (si prefieres Python/Node), desde la carpeta del proyecto:
 
 ```bash
 # Opción 1: Python (suele venir instalado)
